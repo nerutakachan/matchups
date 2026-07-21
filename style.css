@@ -18,6 +18,7 @@ body {
 	background-position: bottom 64px center;
 	background-size: 85vw;
 	background-attachment: fixed;
+	overscroll-behavior-y: none; 
 }
 
 .app-container {
