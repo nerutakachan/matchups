@@ -1,0 +1,309 @@
+* {
+	box-sizing: border-box;
+	-webkit-tap-highlight-color: transparent;
+}
+header{
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	line-height: 1;
+}
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	color: #333;
+	background: url(image/smash.png);
+	background-repeat: no-repeat;
+	background-position: bottom 64px center;
+	background-size: 85vw;
+	background-attachment: fixed;
+}
+
+.app-container {
+	max-width: 500px;
+	margin: 0 auto;
+	padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom);
+}
+
+header h1 {
+	font-size: 1.2rem;
+	text-align: center;
+	padding: 20px 0 0;
+	margin: 0;
+}
+
+.config-card {
+	background: rgb(255 255 255 / 60%);
+	padding: 1rem;
+	border-radius: 12px;
+	box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+	margin-bottom: 20px;
+}
+
+.input-row {
+	display: flex;
+	gap: 15px;
+	margin-bottom: 15px;
+}
+
+.input-group {
+	flex: 1;
+}
+
+.input-group label {
+	display: block;
+	font-size: 1rem;
+	color: #333;
+	margin-bottom: 5px;
+}
+
+input {
+	width: 100%;
+	padding: 12px;
+	font-size: 1rem;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	/* appearance: none; */
+	background-color: #ffffff8c;
+}
+
+button {
+	width: 100%;
+	color: #300010;
+	font-size: 1rem;
+	font-weight: bold;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	box-shadow: 0px 2px 3px 0px rgba(0, 0, 0, 0.25);
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 1);
+  background-color: transparent;
+  background-image: radial-gradient(rgba(231, 199, 199, 0.7), rgba(255, 126, 168, 0.7));
+}
+
+button:active {
+	background-color: #0056b3;
+}
+
+.match-card {
+	background: rgb(255 255 255 / 60%);
+	border-radius: 12px;
+	margin-bottom: 15px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	overflow: hidden;
+}
+
+.match-header {
+	background: #f8f9fa;
+	padding: 10px 15px;
+	font-weight: bold;
+	font-size: 0.9rem;
+	border-bottom: 1px solid #eee;
+	display: flex;
+	justify-content: space-between;
+}
+
+.court-row {
+	padding: 15px;
+	border-bottom: 1px solid #f0f0f0;
+	display: flex;
+}
+
+.court-name {
+	font-size: 1rem;
+	color: #007aff;
+	font-weight: normal;
+	margin-bottom: 8px;
+	flex-shrink: 0;
+}
+.court-name::first-letter {
+	font-size: 1.5em;
+	font-weight: bold;
+}
+
+.game-display {
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	text-align: center;
+	width: 100%;
+}
+
+.team {
+	flex: 1;
+	font-size: 1.6rem;
+	font-weight: 500;
+}
+
+.vs {
+	flex: 0 0 40px;
+	font-size: 1rem;
+	color: #656565;
+}
+
+.waiting-section {
+	padding: 10px 15px;
+	background: #f9f9f9de;
+	font-size: 1rem;
+	color: #333;
+}
+
+/* 70行目付近：既存の .match-card の下に追記・修正 */
+
+/* 試合カードを横に並べるためのコンテナ */
+#resultArea {
+	display: flex;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	gap: 20px;
+	padding-bottom: 20px;
+	-webkit-overflow-scrolling: touch; /* iPhoneのスムーズなスクロール */
+}
+
+.match-card {
+	flex: 0 0 100%; /* 1枚ずつ画面いっぱいに表示 */
+	scroll-snap-align: center;
+	background: rgb(255 255 255 / 60%);
+	border-radius: 12px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	overflow: hidden;
+}
+
+.match-header {
+	background: #f8f9facc;
+	padding: 10px 15px;
+	font-weight: bold;
+	font-size: 1.4rem;
+	border-bottom: 1px solid #eee;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+/* チェックボックスのスタイル */
+/* style.css の .done-check に追加 */
+.done-check {
+	display: flex;
+	align-items: center;
+	font-size: 0.8rem;
+	color: #007aff;
+	cursor: pointer; /* マウス操作時も分かりやすく */
+	padding: 5px 0 5px 10px; /* タップ反応領域を少し広げる */
+}
+.done-check input {
+	width: 20px;
+	height: 20px;
+	margin-right: 5px;
+}
+
+/* チェックを入れた時にカードを薄くする */
+.match-card.is-done {
+	opacity: 0.3;
+	background-color: #000000;
+}
+
+.heruninzu{
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+#recalcBtn{
+	background-image:
+	radial-gradient(rgba(199, 210, 231, 0.7),
+	rgba(126, 170, 255, 0.7));
+}
+
+button,
+input{
+	height: 3rem;
+}
+/* モーダル */
+#soloModal{
+	display:none;
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+	background:rgba(0,0,0,0.5);
+	z-index:1000;
+}
+#soloModal > div{
+	background:#fff;
+	margin:20% auto;
+	padding:20px;
+	width:80%;
+	max-width:300px;
+	border-radius:10px;
+}
+#soloOptions{
+	max-height: 200px;
+	overflow-y: auto;
+	margin-bottom: 10px;
+	display: grid;
+	gap: 0.5em;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+#soloOptions label{
+	display: flex;
+	/* padding: 5px; */
+	align-items: center;
+}
+#soloOptions label input{
+	height: 1rem;
+	width: auto;
+	padding: 12px;
+	font-size: 1rem;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	/* appearance: none; */
+	background-color: #ffffff8c;
+}
+/* 設定モーダル */
+#configModal {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 1000;
+}
+#configModal > div {
+	background: #fff;
+	margin: 20% auto;
+	padding: 20px;
+	width: 90%;
+	border-radius: 10px;
+}
+#configModal label {
+	display: block;
+	margin-bottom: 5px;
+}
+#configModal select {
+	width: 100%;
+	padding: 10px;
+	margin-bottom: 10px;
+	font-size: 1rem;
+}
+.speak-btn {
+	padding: 5px 7px;
+	margin-right: 5px;
+	border-radius: 5px;
+	border: 1px solid #ccc;
+	background: #f0f0f0;
+	cursor: pointer;
+	width: 4em;
+}
+.btm_box{
+	position: fixed;
+	bottom: 0;
+	display: flex;
+	width: 100%;
+}
+.btm_box button{
+	height: 4rem;
+}

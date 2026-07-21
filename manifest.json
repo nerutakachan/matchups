@@ -1,0 +1,15 @@
+{
+	"name": "バドミントン組み合わせ抽選器",
+	"short_name": "バド抽選",
+	"start_url": "index.html",
+	"display": "standalone",
+	"background_color": "#f0f2f5",
+	"theme_color": "#007aff",
+	"icons": [
+		{
+			"src": "image/icon.png",
+			"sizes": "180x180",
+			"type": "image/png"
+		}
+	]
+}

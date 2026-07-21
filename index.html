@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="robots" content="noindex, nofollow">
+	<meta name="apple-mobile-web-app-title" content="バド抽選">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<link rel="manifest" href="manifest.json">
+	<link rel="apple-touch-icon" href="image/icon.png">
+	<link rel="manifest" href="manifest.json">
+	<title>游羽球会</title>
+	<link rel="stylesheet" href="style.css?v=1.2">
+</head>
+<body>
+	<div class="app-container">
+		<header>
+			<h1>バドミントン組み合わせ🏸</h1>
+			<p>v2.0.1</p>
+		</header>
+		
+		<main>
+			<section>
+				<article class="config-card">
+					<div class="input-row">
+						<div class="input-group">
+							<label>人数</label>
+							<input type="number" id="playerCount" value="" min="4" placeholder="人数">
+						</div>
+						<div class="input-group">
+							<label>ソロ</label>
+							<button type="button" id="openSoloModal">選択</button>
+						</div>
+						<div class="input-group">
+							<label>試合数</label>
+							<button type="button" id="openConfigModal">設定</button>
+						</div>
+						<div class="input-group">
+							<label>退席者</label>
+							<div class="heruninzu">
+								<input type="text" id="reduceCount" placeholder="">
+							</div>
+						</div>
+					</div>
+				</article>
+				<article id="resultArea">
+				</article>
+			</section>
+		</main>
+	</div>
+	<div id="soloModal">
+		<div>
+			<h3>ソロ参加者を選択</h3>
+			<div id="soloOptions"></div>
+			<button id="closeSoloModal">決定</button>
+		</div>
+	</div>
+	<div id="configModal">
+		<div>
+			<h3>試合設定</h3>
+			<div>
+				<label>試合数</label>
+				<input type="number" id="matchCount" value="10" min="1">
+			</div>
+			<div>
+				<label>コート数</label>
+				<select id="courtLimitSelect">
+					<option value="0">自動</option>
+					<option value="1">1面</option>
+					<option value="2">2面</option>
+					<option value="3">3面</option>
+				</select>
+			</div>
+			<button id="closeConfigModal">決定</button>
+		</div>
+	</div>
+	<div class="btm_box">
+		<button id="generateBtn">組み合わせを作成する</button>
+		<button id="recalcBtn">再計算</button>
+	</div>
+	<script src="script.js?v=1.2"></script>
+</body>
+</html>
