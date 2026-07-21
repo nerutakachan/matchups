@@ -31,12 +31,12 @@ function runGeneration(startM, totalMatches, activePlayers, soloPlayers, pairHis
     let priorityPlayers = [...lastWaiting].filter(p => activePlayers.includes(p));
     let heavyPlayers = activePlayers.filter(p => consecutiveCounts[p] >= 3);
     let others = activePlayers.filter(p => !priorityPlayers.includes(p) && !heavyPlayers.includes(p));
-    // 出場回数に基づきソート（少ない順）
-		priorityPlayers.sort((a, b) => totalCounts[a] - totalCounts[b]);
-		others.sort((a, b) => totalCounts[a] - totalCounts[b]);
-		heavyPlayers.sort((a, b) => totalCounts[a] - totalCounts[b]);
-    // 各グループ内でランダムシャッフルし、選ばれる順序を散らす
-    [priorityPlayers, others, heavyPlayers].forEach(arr => arr.sort(() => Math.random() - 0.5));
+    // 出場回数が少ない順に並べ、同じ回数の場合のみランダムにシャッフルする
+		const fairSort = (a, b) => (totalCounts[a] - totalCounts[b]) || (Math.random() - 0.5);
+
+		priorityPlayers.sort(fairSort);
+		others.sort(fairSort);
+		heavyPlayers.sort(fairSort);
     let pool = [...priorityPlayers, ...others, ...heavyPlayers];
 
     // --- 1. チーム作成フェーズ（ペア被りを防ぐ） ---
