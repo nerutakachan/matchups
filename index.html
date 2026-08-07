@@ -17,7 +17,7 @@
 	<div class="app-container">
 		<header>
 			<h1>バドミントン組み合わせ🏸</h1>
-			<p>v2.0.3</p>
+			<p>v2.0.4</p>
 		</header>
 		
 		<main>
@@ -38,9 +38,7 @@
 						</div>
 						<div class="input-group">
 							<label>退席者</label>
-							<div class="heruninzu">
-								<input type="text" id="reduceCount" placeholder="">
-							</div>
+							<button type="button" id="openRemoveModal">選択</button>
 						</div>
 					</div>
 				</article>
@@ -73,6 +71,13 @@
 				</select>
 			</div>
 			<button id="closeConfigModal">決定</button>
+		</div>
+	</div>
+	<div id="removeModal">
+		<div>
+			<h3>退席者を選択</h3>
+			<div id="removeOptions"></div>
+			<button id="closeRemoveModal">決定</button>
 		</div>
 	</div>
 	<div class="btm_box">
