@@ -224,11 +224,9 @@ button:active {
 button,
 input{
 	height: 3rem;
-	transition: all 0.5s;
 }
 /* モーダル */
-#soloModal,
-#removeModal{
+#soloModal{
 	display:none;
 	position:fixed;
 	top:0;
@@ -238,8 +236,7 @@ input{
 	background:rgba(0,0,0,0.5);
 	z-index:1000;
 }
-#soloModal > div,
-#removeModal > div{
+#soloModal > div{
 	background:#fff;
 	margin:20% auto;
 	padding:20px;
@@ -247,8 +244,7 @@ input{
 	max-width:300px;
 	border-radius:10px;
 }
-#soloOptions,
-#removeOptions {
+#soloOptions{
 	max-height: 200px;
 	overflow-y: auto;
 	margin-bottom: 10px;
@@ -256,14 +252,12 @@ input{
 	gap: 0.5em;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-#soloOptions label,
-#removeOptions label{
+#soloOptions label{
 	display: flex;
 	/* padding: 5px; */
 	align-items: center;
 }
-#soloOptions label input,
-#removeOptions label input{
+#soloOptions label input{
 	height: 1rem;
 	width: auto;
 	padding: 12px;

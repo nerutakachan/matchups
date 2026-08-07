@@ -188,12 +188,12 @@ function runGeneration(startM, totalMatches, activePlayers, soloPlayers, pairHis
   }
 }
 
-/** * 補助関数：指定された名前のチェックボックスから数字を取得
-*/ function parsePlayerNumbers(name) {
-  // 引数がなければデフォルトで "soloPlayer" を使う
-  const targetName = name || "soloPlayer";
-  const checkboxes = document.querySelectorAll(`input[name="${targetName}"]:checked`);
-  return Array.from(checkboxes).map(cb => parseInt(cb.value));
+/**
+ * 補助関数：入力欄から数字を配列で取得
+ */
+function parsePlayerNumbers() {
+	const checkboxes = document.querySelectorAll('input[name="soloPlayer"]:checked');
+	return Array.from(checkboxes).map(cb => parseInt(cb.value));
 }
 
 /**
@@ -229,7 +229,7 @@ document.getElementById('generateBtn').addEventListener('click', () => {
  */
 document.getElementById('recalcBtn').addEventListener('click', () => {
   const cards = document.querySelectorAll('.match-card');
-	const removeIds = parsePlayerNumbers('removePlayer');
+	const removeIds = parsePlayerNumbers('reduceCount');
 	const matchCount = parseInt(document.getElementById('matchCount').value);
 	const soloPlayers = parsePlayerNumbers();
 	
@@ -335,21 +335,7 @@ document.getElementById('openSoloModal').addEventListener('click', () => {
 document.getElementById('closeSoloModal').addEventListener('click', () => {
 	document.getElementById('soloModal').style.display = 'none';
 });
-document.getElementById('openRemoveModal').addEventListener('click', () => {
-  const count = parseInt(document.getElementById('playerCount').value);
-  if (isNaN(count)) return alert('まず参加人数を入力してください');
-  const options = document.getElementById('removeOptions');
-  options.innerHTML = '';
-  for (let i = 1; i <= count; i++) {
-    const label = document.createElement('label');
-    label.innerHTML = `<input type="checkbox" name="removePlayer" value="${i}"> ${i}番`;
-    options.appendChild(label);
-  }
-  document.getElementById('removeModal').style.display = 'block';
-});
-document.getElementById('closeRemoveModal').addEventListener('click', () => {
-  document.getElementById('removeModal').style.display = 'none';
-});
+
 /**
  * 補助関数：モーダルのチェックボックスからソロ参加者を取得
  */
