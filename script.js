@@ -228,32 +228,60 @@ document.getElementById('generateBtn').addEventListener('click', () => {
  * 再計算ボタン
  */
 document.getElementById('recalcBtn').addEventListener('click', () => {
-  const cards = document.querySelectorAll('.match-card');
-	const removeIds = parsePlayerNumbers('reduceCount');
-	const matchCount = parseInt(document.getElementById('matchCount').value);
-	const soloPlayers = parsePlayerNumbers();
-	
-	let lastDoneIndex = -1;
-  cards.forEach((card, index) => {
-    if (card.classList.contains('is-done')) lastDoneIndex = index;
-  });
+  // 1. 退席者の入力欄 (id="reduceCount") から番号を取得し、数値 (Number) 配列に変換
+  const reduceInputVal = document.getElementById('reduceCount').value;
+  const removeIds = reduceInputVal
+    .split(/[,、\s]+/)
+    .map(id => parseInt(id.trim(), 10))
+    .filter(id => !isNaN(id));
 
-  if (lastDoneIndex === -1) return alert('終わった試合の「終わったよん」にチェックを入れてください');
+  const matchCount = parseInt(document.getElementById('matchCount').value);
+  const soloPlayers = parsePlayerNumbers();
+  const cards = Array.from(document.querySelectorAll('.match-card'));
+  const lastDoneIndex = cards.findLastIndex(card => card.classList.contains('is-done'));
 
-  const snap = matchSnapshots[lastDoneIndex];
-  consecutiveCounts = snap.consecutiveCounts ? { ...snap.consecutiveCounts } : {};
-  matchHistory = snap.matchHistory ? new Map(snap.matchHistory) : new Map();
-  exactMatchHistory = snap.exactMatchHistory ? new Map(snap.exactMatchHistory) : new Map(); // 復元追加
-	totalCounts = snap.totalCounts ? { ...snap.totalCounts } : {};
-  const nextMatchNum = lastDoneIndex + 2;
+  if (lastDoneIndex >= 0) {
+    // 【完了試合がある場合】完了済みの最終試合の状態から再開
+    const snap = matchSnapshots[lastDoneIndex];
+    if (!snap) return;
 
-  const newActivePlayers = snap.activePlayers.filter(p => !removeIds.includes(p));
-  const newLastWaiting = snap.lastWaiting.filter(p => !removeIds.includes(p));
+    // 退席者を数値で判定して除外
+    const newActivePlayers = snap.activePlayers.filter(p => !removeIds.includes(p));
+    const newLastWaiting = snap.lastWaiting.filter(p => !removeIds.includes(p));
 
-  for (let i = cards.length - 1; i > lastDoneIndex; i--) cards[i].remove();
-  matchSnapshots = matchSnapshots.slice(0, lastDoneIndex + 1);
+    // 状態と履歴の復元
+    totalCounts = snap.totalCounts ? { ...snap.totalCounts } : {};
+    consecutiveCounts = snap.consecutiveCounts ? { ...snap.consecutiveCounts } : {};
+    matchHistory = new Map(snap.matchHistory);
+    exactMatchHistory = new Map(snap.exactMatchHistory);
 
-  runGeneration(nextMatchNum, matchCount, newActivePlayers, soloPlayers, snap.pairHistory, newLastWaiting);
+    // 未完了カードの削除とスナップショットの切り詰め
+    for (let i = cards.length - 1; i > lastDoneIndex; i--) {
+      cards[i].remove();
+    }
+    matchSnapshots = matchSnapshots.slice(0, lastDoneIndex + 1);
+
+    // 残り試合の再生成
+    const nextMatchNum = lastDoneIndex + 2;
+    runGeneration(nextMatchNum, matchCount, newActivePlayers, soloPlayers, new Map(snap.pairHistory), newLastWaiting);
+  } else {
+    // 【完了試合が1つもない場合】第1試合から退席者を除外して再計算
+    const playerCount = parseInt(document.getElementById('playerCount').value);
+    if (isNaN(playerCount) || playerCount < 2) return alert('人数を正しく入力してください');
+
+    const allPlayers = Array.from({ length: playerCount }, (_, i) => i + 1);
+    const newActivePlayers = allPlayers.filter(p => !removeIds.includes(p));
+
+    // 画面表示と各種履歴のリセット
+    document.getElementById('resultArea').innerHTML = '';
+    matchSnapshots = [];
+    consecutiveCounts = {};
+    totalCounts = {};
+    matchHistory = new Map();
+    exactMatchHistory = new Map();
+
+    runGeneration(1, matchCount, newActivePlayers, soloPlayers, new Map(), []);
+  }
 });
 
 /**

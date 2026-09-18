@@ -83,13 +83,13 @@ button {
   background-image: radial-gradient(rgba(231, 199, 199, 0.7), rgba(255, 126, 168, 0.7));
 	box-shadow: inset 3px 3px 3px 0px rgb(255 255 255 / 30%), inset -3px -3px 3px 0px rgba(0, 0, 0, 0.3);
 }
-button:hover{
+button:active{
 	filter: brightness(0.9);
 	box-shadow: inset 3px 3px 3px 0px rgb(0 0 0 / 30%), inset -3px -3px 3px 0px rgb(255 255 255 / 30%);
 }
 
 button:active {
-	background-color: #0056b3;
+	filter: brightness(0.8);
 }
 
 .match-card {
