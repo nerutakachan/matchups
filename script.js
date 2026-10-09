@@ -29,7 +29,7 @@ function runGeneration(startM, totalMatches, activePlayers, soloPlayers, pairHis
   for (let m = startM; m <= totalMatches; m++) {
     // 優先順位（1.前回休み > 2.普通 > 3. 2連投以上）
     let priorityPlayers = [...lastWaiting].filter(p => activePlayers.includes(p));
-    let heavyPlayers = activePlayers.filter(p => consecutiveCounts[p] >= 3);
+    let heavyPlayers = activePlayers.filter(p => consecutiveCounts[p] >= 2);
     let others = activePlayers.filter(p => !priorityPlayers.includes(p) && !heavyPlayers.includes(p));
     // 出場回数が少ない順に並べ、同じ回数の場合のみランダムにシャッフルする
 		const fairSort = (a, b) => (totalCounts[a] - totalCounts[b]) || (Math.random() - 0.5);
@@ -115,33 +115,42 @@ function runGeneration(startM, totalMatches, activePlayers, soloPlayers, pairHis
         let minScore = Infinity;
 
         // 対戦相手の候補をランダム化
-        const oppCandidates = Array.from({length: teams.length}, (_, i) => i);
-        oppCandidates.sort(() => Math.random() - 0.5);
+				const oppCandidates = Array.from({ length: teams.length }, (_, i) => i);
+				oppCandidates.sort(() => Math.random() - 0.5);
 
-        for (let i of oppCandidates) {
-          let pVsPCount = 0;
-          // 1. 個人同士の対戦回数をカウント（1人被りの判定用）
-          t1.forEach(pA => {
-            teams[i].forEach(pB => {
-              const key = [pA, pB].sort((a, b) => a - b).join('v');
-              pVsPCount += (matchHistory.get(key) || 0);
-            });
-          });
+				// 【役割の分離】t1がソロ(1人)の場合、ペア(2人)が存在すれば候補をペアチームのみに絞り込む
+				let targetCandidates = oppCandidates;
+				if (t1.length === 1) {
+						const pairCandidates = oppCandidates.filter(i => teams[i].length === 2);
+						if (pairCandidates.length > 0) {
+								targetCandidates = pairCandidates;
+						}
+				}
 
-          // 2. 「全く同じ対戦カード」の回数をカウント
-          const exactKey = getMatchKey(t1, teams[i]);
-          const exactCount = exactMatchHistory.get(exactKey) || 0;
-          
-          // ★スコア計算: 全く同じ対戦カードはペナルティ+100（絶対に避ける）
-          let score = pVsPCount + (exactCount * 100);
+				// 絞り込まれた候補の中から、過去の対戦履歴スコアが最も低い相手を選出
+				for (let i of targetCandidates) {
+						let pVsPCount = 0;
+						// 1. 個人同士の対戦回数をカウント（1人被りの判定用）
+						t1.forEach(pA => {
+								teams[i].forEach(pB => {
+										const key = [pA, pB].sort((a, b) => a - b).join('v');
+										pVsPCount += (matchHistory.get(key) || 0);
+								});
+						});
 
-          if (score < minScore) {
-            minScore = score;
-            bestOpponentIndex = i;
-          }
-          if (minScore === 0) break;
-        }
+						// 2. 「全く同じ対戦カード」の回数をカウント
+						const exactKey = getMatchKey(t1, teams[i]);
+						const exactCount = exactMatchHistory.get(exactKey) || 0;
+						
+						// スコア計算（純粋な対戦履歴の 重み付けのみを行う）
+						let score = pVsPCount + (exactCount * 100);
 
+						if (score < minScore) {
+								minScore = score;
+								bestOpponentIndex = i;
+						}
+						if (minScore === 0) break;
+				}
         const t2 = teams.splice(bestOpponentIndex, 1)[0];
         
         // 対戦履歴の更新
