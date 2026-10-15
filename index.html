@@ -17,7 +17,7 @@
 	<div class="app-container">
 		<header>
 			<h1>バドミントン組み合わせ🏸</h1>
-			<p>v2.0.5</p>
+			<p>v2.1.0</p>
 		</header>
 		
 		<main>
@@ -38,9 +38,7 @@
 						</div>
 						<div class="input-group">
 							<label>退席者</label>
-							<div class="heruninzu">
-								<input type="text" id="reduceCount" placeholder="">
-							</div>
+							<button type="button" id="openReduceModal">選択</button>
 						</div>
 					</div>
 				</article>
@@ -49,7 +47,7 @@
 			</section>
 		</main>
 	</div>
-	<div id="soloModal">
+	<div id="soloModal" class="checkbox-Modal">
 		<div>
 			<h3>ソロ参加者を選択</h3>
 			<div id="soloOptions"></div>
@@ -73,6 +71,14 @@
 				</select>
 			</div>
 			<button id="closeConfigModal">決定</button>
+		</div>
+	</div>
+	<!-- 退席者選択モーダル（ソロ用とは完全に独立） -->
+	<div id="reduceModal" class="checkbox-Modal">
+		<div>
+			<h3>退席者を選択</h3>
+			<div id="reduceOptions"></div>
+			<button type="button" id="closeReduceModal">確定</button>
 		</div>
 	</div>
 	<div class="btm_box">

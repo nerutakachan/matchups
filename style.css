@@ -226,7 +226,7 @@ input{
 	height: 3rem;
 }
 /* モーダル */
-#soloModal{
+.checkbox-Modal{
 	display:none;
 	position:fixed;
 	top:0;
@@ -236,7 +236,7 @@ input{
 	background:rgba(0,0,0,0.5);
 	z-index:1000;
 }
-#soloModal > div{
+.checkbox-Modal > div{
 	background:#fff;
 	margin:20% auto;
 	padding:20px;
@@ -244,6 +244,7 @@ input{
 	max-width:300px;
 	border-radius:10px;
 }
+#reduceOptions, 
 #soloOptions{
 	max-height: 200px;
 	overflow-y: auto;
@@ -252,11 +253,13 @@ input{
 	gap: 0.5em;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
+#reduceOptions label,
 #soloOptions label{
 	display: flex;
 	/* padding: 5px; */
 	align-items: center;
 }
+#reduceOptions label input,
 #soloOptions label input{
 	height: 1rem;
 	width: auto;

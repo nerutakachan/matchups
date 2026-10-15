@@ -237,12 +237,8 @@ document.getElementById('generateBtn').addEventListener('click', () => {
  * 再計算ボタン
  */
 document.getElementById('recalcBtn').addEventListener('click', () => {
-  // 1. 退席者の入力欄 (id="reduceCount") から番号を取得し、数値 (Number) 配列に変換
-  const reduceInputVal = document.getElementById('reduceCount').value;
-  const removeIds = reduceInputVal
-    .split(/[,、\s]+/)
-    .map(id => parseInt(id.trim(), 10))
-    .filter(id => !isNaN(id));
+  // 退席者をチェックボックスから取得
+  const removeIds = parseReducePlayerNumbers();
 
   const matchCount = parseInt(document.getElementById('matchCount').value);
   const soloPlayers = parsePlayerNumbers();
@@ -387,3 +383,34 @@ document.getElementById('openConfigModal').addEventListener('click', () => {
 document.getElementById('closeConfigModal').addEventListener('click', () => {
 	document.getElementById('configModal').style.display = 'none';
 });
+// --- 退席者選択モーダル関連（ソロ用と独立処理） ---
+document.getElementById('openReduceModal').addEventListener('click', () => {
+  const count = parseInt(document.getElementById('playerCount').value);
+  if (isNaN(count)) return alert('まず参加人数を入力してください');
+
+  // 選択済みの退席者チェック状態を取得
+  const checkedValues = parseReducePlayerNumbers();
+  const options = document.getElementById('reduceOptions');
+  options.innerHTML = '';
+
+  for (let i = 1; i <= count; i++) {
+    const label = document.createElement('label');
+    const isChecked = checkedValues.includes(i) ? 'checked' : '';
+    label.innerHTML = `<input type="checkbox" name="reducePlayer" value="${i}" ${isChecked}> ${i}番`;
+    options.appendChild(label);
+  }
+
+  document.getElementById('reduceModal').style.display = 'block';
+});
+
+document.getElementById('closeReduceModal').addEventListener('click', () => {
+  document.getElementById('reduceModal').style.display = 'none';
+});
+
+/**
+ * 補助関数：モーダルのチェックボックスから退席者プレイヤー番号を取得
+ */
+function parseReducePlayerNumbers() {
+  const checkboxes = document.querySelectorAll('input[name="reducePlayer"]:checked');
+  return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
