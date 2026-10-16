@@ -312,6 +312,7 @@ input{
 	bottom: 0;
 	display: flex;
 	width: 100%;
+	padding-bottom: env(safe-area-inset-bottom);
 }
 .btm_box button{
 	height: 4rem;
