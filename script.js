@@ -377,7 +377,10 @@ function parsePlayerNumbers() {
 	return Array.from(checkboxes).map(cb => parseInt(cb.value));
 }
 document.getElementById('openConfigModal').addEventListener('click', () => {
-	document.getElementById('configModal').style.display = 'block';
+  // モーダルを開く直前に選択肢を最新の人数状態に合わせて更新
+  updateCourtLimitOptions();
+
+  document.getElementById('configModal').style.display = 'block';
 });
 
 document.getElementById('closeConfigModal').addEventListener('click', () => {
@@ -413,4 +416,54 @@ document.getElementById('closeReduceModal').addEventListener('click', () => {
 function parseReducePlayerNumbers() {
   const checkboxes = document.querySelectorAll('input[name="reducePlayer"]:checked');
   return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
+/**
+ * 現在の人数・ソロ・退席者数から、選択可能なコート数を制御する関数
+ */
+function updateCourtLimitOptions() {
+  const playerCount = parseInt(document.getElementById('playerCount').value) || 0;
+  const soloPlayers = parsePlayerNumbers();       // ソロ参加者の番号配列
+  const removeIds = parseReducePlayerNumbers();   // 退席者の番号配列
+
+  // 有効な参加者数（全体人数 - 退席者）
+  const activeCount = Math.max(0, playerCount - removeIds.length);
+
+  // 有効なソロプレイヤー数
+  const activeSoloCount = soloPlayers.filter(p => p <= playerCount && !removeIds.includes(p)).length;
+  
+  // ペアを組むプレイヤー数
+  const pairCount = Math.max(0, activeCount - activeSoloCount);
+
+  // 作成可能なチーム数（ソロ数 + ペアチーム数）
+  const teamsCount = activeSoloCount + Math.floor(pairCount / 2);
+
+  // 作成可能な最大コート数（最低1面〜最大3面）
+  const maxCourts = Math.min(3, Math.floor(teamsCount / 2));
+
+  const select = document.getElementById('courtLimitSelect');
+  const currentValue = parseInt(select.value, 10);
+
+  // 各 <option> の有効/無効および表示/非表示を切り替え
+  Array.from(select.options).forEach(opt => {
+    const val = parseInt(opt.value, 10);
+    if (val === 0) {
+      // 「自動」は常に選択可能
+      opt.disabled = false;
+      opt.hidden = false;
+    } else {
+      if (val > maxCourts) {
+        opt.disabled = true;
+        opt.hidden = true; // モバイル環境等でリストから非表示化
+      } else {
+        opt.disabled = false;
+        opt.hidden = false;
+      }
+    }
+  });
+
+  // もし現在選ばれているコート数が最大数を超えている場合、「自動(0)」に安全にリセット
+  if (currentValue > maxCourts) {
+    select.value = "0";
+  }
 }
