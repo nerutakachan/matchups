@@ -74,7 +74,7 @@ function runGeneration(startM, totalMatches, activePlayers, soloPlayers, pairHis
           if (minPairCount === 0) break; // 一度も組んでいない相手なら即決
         }
         
-        const p2 = tempPool.splice(bestPartnerIndex, 1);
+        const p2 = tempPool.splice(bestPartnerIndex, 1)[0];
         const newPair = [p1, p2];
         teams.push(newPair);
       } else {
