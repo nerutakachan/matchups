@@ -74,13 +74,9 @@ function runGeneration(startM, totalMatches, activePlayers, soloPlayers, pairHis
           if (minPairCount === 0) break; // 一度も組んでいない相手なら即決
         }
         
-        const p2 = tempPool.splice(bestPartnerIndex, 1)[0];
+        const p2 = tempPool.splice(bestPartnerIndex, 1);
         const newPair = [p1, p2];
         teams.push(newPair);
-        
-        // ペア履歴の更新
-        const key = newPair.slice().sort((a, b) => a - b).join('-');
-        pairHistory.set(key, (pairHistory.get(key) || 0) + 1);
       } else {
         // ペア相手不在の場合は待機させる
         skipped.push(p1);
@@ -152,7 +148,17 @@ function runGeneration(startM, totalMatches, activePlayers, soloPlayers, pairHis
 						if (minScore === 0) break;
 				}
         const t2 = teams.splice(bestOpponentIndex, 1)[0];
-        
+
+        // ★出場の確定したペアのみペア履歴を加算
+        if (t1.length === 2) {
+          const k1 = t1.slice().sort((a, b) => a - b).join('-');
+          pairHistory.set(k1, (pairHistory.get(k1) || 0) + 1);
+        }
+        if (t2.length === 2) {
+          const k2 = t2.slice().sort((a, b) => a - b).join('-');
+          pairHistory.set(k2, (pairHistory.get(k2) || 0) + 1);
+        }
+
         // 対戦履歴の更新
         t1.forEach(pA => {
           t2.forEach(pB => {
