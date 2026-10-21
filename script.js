@@ -327,30 +327,6 @@ function renderMobileCard(matchNum, courts, waiting) {
 		<div class="waiting-section">待機: ${waiting.length > 0 ? waiting.join(', ') : '全員出場中'}</div>`;
 	resultArea.appendChild(card);
 }
-
-// 以下の関数を末尾に追加
-function speakMatch(btn) {
-	const card = btn.closest('.match-card');
-	const rows = card.querySelectorAll('.court-row');
-	let speechText = "";
-
-	rows.forEach(row => {
-		const courtName = row.querySelector('.court-name').innerText; // "1コート"
-		const teams = row.querySelectorAll('.team');
-		
-		// チーム内の "-" を "、" に置換して読み上げやすくする
-		const t1 = teams[0].innerText.replace(/-/g, '、'); 
-		const t2 = teams[1].innerText.replace(/-/g, '、');
-
-		// 「1コート、1、2、対、3、4」のように構築
-		speechText += `${courtName}、${t1}、対するは、${t2}。`;
-	});
-
-	// 音声合成の実行
-	const utterance = new SpeechSynthesisUtterance(speechText);
-	utterance.lang = 'ja-JP';
-	window.speechSynthesis.speak(utterance);
-}
 // --- ソロ参加者選択モーダル関連 ---
 document.getElementById('openSoloModal').addEventListener('click', () => {
 	const count = parseInt(document.getElementById('playerCount').value);
@@ -472,4 +448,27 @@ function updateCourtLimitOptions() {
   if (currentValue > maxCourts) {
     select.value = "0";
   }
+}
+function speakMatch(btn) {
+  const card = btn.closest('.match-card');
+  const rows = card.querySelectorAll('.court-row');
+  let speechText = "";
+
+  rows.forEach(row => {
+    const courtName = row.querySelector('.court-name').innerText; // "1コート"
+    const teams = row.querySelectorAll('.team');
+    
+    if (teams.length >= 2) {
+      const t1 = teams.innerText.replace(/-/g, '、');
+      const t2 = teams[2].innerText.replace(/-/g, '、');
+      speechText += `${courtName}、${t1}、対するは、${t2}。`;
+    }
+  });
+
+  // ★ 既存の音声再生キューを一旦キャンセルの上、再実行
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.lang = 'ja-JP';
+  window.speechSynthesis.speak(utterance);
 }
