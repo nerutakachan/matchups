@@ -472,3 +472,95 @@ function speakMatch(btn) {
   utterance.lang = 'ja-JP';
   window.speechSynthesis.speak(utterance);
 }
+
+// --- 音声設定の管理（初期値の設定と読み込み） ---
+let currentSpeaker = localStorage.getItem('vv_speaker') || '3';
+let currentVolume = parseFloat(localStorage.getItem('vv_volume')) || 1.8;
+
+// 設定モーダルを開く
+function openAudioSettings() {
+  document.getElementById('speakerSelect').value = currentSpeaker;
+  document.getElementById('volumeRange').value = currentVolume;
+  document.getElementById('volumeValue').innerText = currentVolume;
+  document.getElementById('audioSettingsModal').style.display = 'flex';
+}
+
+// 設定を保存してモーダルを閉じる
+function saveAudioSettings() {
+  currentSpeaker = document.getElementById('speakerSelect').value;
+  currentVolume = parseFloat(document.getElementById('volumeRange').value);
+  
+  localStorage.setItem('vv_speaker', currentSpeaker);
+  localStorage.setItem('vv_volume', currentVolume);
+  
+  document.getElementById('audioSettingsModal').style.display = 'none';
+}
+
+// --- VOICEVOX読み上げ機能 ---
+async function speakMatch(btn) {
+  const card = btn.closest('.match-card');
+  const rows = card.querySelectorAll('.court-row');
+  let speechText = "";
+
+  rows.forEach(row => {
+    const courtName = row.querySelector('.court-name').innerText;
+    const teams = row.querySelectorAll('.team');
+    
+    if (teams.length >= 2) {
+      const t1 = teams[0].innerText.replace(/-/g, '、');
+      const t2 = teams[1].innerText.replace(/-/g, '、');
+      speechText += `${courtName}、${t1}、対するは、${t2}。`;
+    }
+  });
+
+  if (!speechText) return;
+
+  const originalText = btn.innerText;
+  btn.innerText = "🔊 読込中...";
+  btn.disabled = true;
+
+  try {
+    // 設定されたスピーカーIDを使用
+    const apiUrl = `https://api.su-shiki.com/v2/voicevox/audio?text=${encodeURIComponent(speechText)}&speaker=${currentSpeaker}`;
+
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error("音声データの取得に失敗しました");
+
+    const blob = await response.blob();
+    const audioUrl = URL.createObjectURL(blob);
+    const audio = new Audio(audioUrl);
+
+    // 設定された音量ブースト倍率を使用
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaElementSource(audio);
+    const gainNode = audioCtx.createGain();
+    
+    gainNode.gain.value = currentVolume; 
+    
+    source.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    btn.innerText = "🔊 再生中...";
+
+    audio.onended = () => {
+      btn.innerText = originalText;
+      btn.disabled = false;
+      URL.revokeObjectURL(audioUrl);
+      audioCtx.close();
+    };
+
+    audio.onerror = () => {
+      alert("音声の再生に失敗しました。");
+      btn.innerText = originalText;
+      btn.disabled = false;
+    };
+
+    await audio.play();
+
+  } catch (error) {
+    console.error("VOICEVOX再生エラー:", error);
+    alert("音声の生成に失敗しました。通信状況をご確認ください。");
+    btn.innerText = originalText;
+    btn.disabled = false;
+  }
+}

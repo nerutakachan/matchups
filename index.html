@@ -17,6 +17,7 @@
 	<div class="app-container">
 		<header>
 			<h1>バドミントン組み合わせ🏸</h1>
+			<button class="btn-setting" type="button" class="icon-btn" onclick="openAudioSettings()" title="音声設定">⚙️</button>
 			<p>v2.2.0</p>
 		</header>
 		
@@ -30,15 +31,15 @@
 						</div>
 						<div class="input-group">
 							<label>ソロ</label>
-							<button type="button" id="openSoloModal">選択</button>
+							<button class="btn" type="button" id="openSoloModal">選択</button>
 						</div>
 						<div class="input-group">
 							<label>試合数</label>
-							<button type="button" id="openConfigModal">設定</button>
+							<button class="btn" type="button" id="openConfigModal">設定</button>
 						</div>
 						<div class="input-group">
 							<label>退席者</label>
-							<button type="button" id="openReduceModal">選択</button>
+							<button class="btn" type="button" id="openReduceModal">選択</button>
 						</div>
 					</div>
 				</article>
@@ -51,7 +52,7 @@
 		<div>
 			<h3>ソロ参加者を選択</h3>
 			<div id="soloOptions"></div>
-			<button id="closeSoloModal">決定</button>
+			<button class="btn" id="closeSoloModal">決定</button>
 		</div>
 	</div>
 	<div id="configModal">
@@ -70,7 +71,7 @@
 					<option value="3">3面</option>
 				</select>
 			</div>
-			<button id="closeConfigModal">決定</button>
+			<button class="btn" id="closeConfigModal">決定</button>
 		</div>
 	</div>
 	<!-- 退席者選択モーダル（ソロ用とは完全に独立） -->
@@ -78,12 +79,38 @@
 		<div>
 			<h3>退席者を選択</h3>
 			<div id="reduceOptions"></div>
-			<button type="button" id="closeReduceModal">確定</button>
+			<button class="btn" type="button" id="closeReduceModal">確定</button>
 		</div>
 	</div>
 	<div class="btm_box">
-		<button id="generateBtn">組み合わせを作成する</button>
-		<button id="recalcBtn">再計算</button>
+		<button class="btn" id="generateBtn">組み合わせを作成する</button>
+		<button class="btn" id="recalcBtn">再計算</button>
+	</div>
+	<!-- 音声設定ポップアップ -->
+	<div id="audioSettingsModal" class="modal-overlay" style="display:none;">
+		<div class="modal-content">
+			<h3>🔊 音声読み上げ設定</h3>
+			
+			<div class="setting-item">
+				<label for="speakerSelect">キャラクター（声）：</label>
+				<select id="speakerSelect">
+					<option value="3">ずんだもん（ノーマル）</option>
+					<option value="2">四国めたん（ノーマル）</option>
+					<option value="8">春日部つむぎ</option>
+					<option value="10">波音リツ</option>
+					<option value="14">冥鳴ひまり</option>
+				</select>
+			</div>
+
+			<div class="setting-item">
+				<label for="volumeRange">音量ブースト：<span id="volumeValue">1.8</span>倍</label>
+				<input type="range" id="volumeRange" min="1.0" max="2.5" step="0.1" value="1.8" oninput="document.getElementById('volumeValue').innerText = this.value">
+			</div>
+
+			<div class="modal-buttons">
+				<button class="btn" type="button" class="btn" onclick="saveAudioSettings()">保存して閉じる</button>
+			</div>
+		</div>
 	</div>
 	<script src="script.js?v=1.2"></script>
 </body>
