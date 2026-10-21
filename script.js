@@ -449,54 +449,73 @@ function updateCourtLimitOptions() {
     select.value = "0";
   }
 }
-function speakMatch(btn) {
-  const card = btn.closest('.match-card');
-  const rows = card.querySelectorAll('.court-row');
-  let speechText = "";
+// --- 主要 VOICEVOX キャラクターリスト ---
+const VOICEVOX_SPEAKERS = [
+  { id: 3, name: "ずんだもん (ノーマル)" },
+  { id: 7, name: "ずんだもん (ツンツン)" },
+  { id: 22, name: "ずんだもん (ささやき)" },
+  { id: 2, name: "四国めたん (ノーマル)" },
+  { id: 0, name: "四国めたん (あまあま)" },
+  { id: 8, name: "春日部つむぎ (ノーマル)" },
+  { id: 9, name: "雨晴はう (ノーマル)" },
+  { id: 10, name: "波音リツ (ノーマル)" },
+  { id: 14, name: "冥鳴ひまり (ノーマル)" },
+  { id: 16, name: "九州そら (ノーマル)" },
+  { id: 20, name: "もち子さん (ノーマル)" },
+  { id: 66, name: "もち子さん (セクシー)" },
+  { id: 23, name: "WhiteCUL (ノーマル)" }
+];
 
-  rows.forEach(row => {
-    const courtName = row.querySelector('.court-name').innerText; // "1コート"
-    const teams = row.querySelectorAll('.team');
-    
-    if (teams.length >= 2) {
-      const t1 = teams.innerText.replace(/-/g, '、');
-      const t2 = teams[2].innerText.replace(/-/g, '、');
-      speechText += `${courtName}、${t1}、対するは、${t2}。`;
-    }
-  });
-
-  // ★ 既存の音声再生キューを一旦キャンセルの上、再実行
-  window.speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(speechText);
-  utterance.lang = 'ja-JP';
-  window.speechSynthesis.speak(utterance);
-}
-
-// --- 音声設定の管理（初期値の設定と読み込み） ---
+// 保存された設定の読み込み（未設定時は初期値）
 let currentSpeaker = localStorage.getItem('vv_speaker') || '3';
-let currentVolume = parseFloat(localStorage.getItem('vv_volume')) || 1.8;
+let currentVolume = parseFloat(localStorage.getItem('vv_volume')) || 1.0;
+
+// 画面読み込み時にドロップダウンを生成
+document.addEventListener('DOMContentLoaded', () => {
+  initAudioSettingsUI();
+});
+
+// ドロップダウン生成と設定値の復元
+function initAudioSettingsUI() {
+  const select = document.getElementById('speakerSelect');
+  if (select) {
+    select.innerHTML = '';
+    VOICEVOX_SPEAKERS.forEach(sp => {
+      const opt = document.createElement('option');
+      opt.value = sp.id;
+      opt.textContent = sp.name;
+      select.appendChild(opt);
+    });
+    select.value = currentSpeaker;
+  }
+
+  const volumeRange = document.getElementById('volumeRange');
+  const volumeValue = document.getElementById('volumeValue');
+  if (volumeRange) volumeRange.value = currentVolume;
+  if (volumeValue) volumeValue.innerText = currentVolume;
+}
 
 // 設定モーダルを開く
 function openAudioSettings() {
-  document.getElementById('speakerSelect').value = currentSpeaker;
-  document.getElementById('volumeRange').value = currentVolume;
-  document.getElementById('volumeValue').innerText = currentVolume;
+  initAudioSettingsUI();
   document.getElementById('audioSettingsModal').style.display = 'flex';
 }
 
 // 設定を保存してモーダルを閉じる
 function saveAudioSettings() {
-  currentSpeaker = document.getElementById('speakerSelect').value;
-  currentVolume = parseFloat(document.getElementById('volumeRange').value);
-  
+  const select = document.getElementById('speakerSelect');
+  const volumeRange = document.getElementById('volumeRange');
+
+  if (select) currentSpeaker = select.value;
+  if (volumeRange) currentVolume = parseFloat(volumeRange.value);
+
   localStorage.setItem('vv_speaker', currentSpeaker);
   localStorage.setItem('vv_volume', currentVolume);
-  
+
   document.getElementById('audioSettingsModal').style.display = 'none';
 }
 
-// --- VOICEVOX読み上げ機能 ---
+// VOICEVOX読み上げ処理（自サーバーPHP経由・CORS完全回避版）
 async function speakMatch(btn) {
   const card = btn.closest('.match-card');
   const rows = card.querySelectorAll('.court-row');
@@ -507,7 +526,7 @@ async function speakMatch(btn) {
     const teams = row.querySelectorAll('.team');
     
     if (teams.length >= 2) {
-      const t1 = teams[0].innerText.replace(/-/g, '、');
+      const t1 = teams.innerText.replace(/-/g, '、');
       const t2 = teams[1].innerText.replace(/-/g, '、');
       speechText += `${courtName}、${t1}、対するは、${t2}。`;
     }
@@ -520,47 +539,51 @@ async function speakMatch(btn) {
   btn.disabled = true;
 
   try {
-    // 設定されたスピーカーIDを使用
-    const apiUrl = `https://api.su-shiki.com/v2/voicevox/audio?text=${encodeURIComponent(speechText)}&speaker=${currentSpeaker}`;
+    const speakerId = parseInt(currentSpeaker, 10) || 3;
+    // 自サーバーの voice.php を経由させる（CORSエラーが発生しません）
+    const proxyUrl = `voice.php?text=${encodeURIComponent(speechText)}&speaker=${speakerId}`;
 
-    const response = await fetch(apiUrl);
-    if (!response.ok) throw new Error("音声データの取得に失敗しました");
-
-    const blob = await response.blob();
-    const audioUrl = URL.createObjectURL(blob);
-    const audio = new Audio(audioUrl);
-
-    // 設定された音量ブースト倍率を使用
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audio);
-    const gainNode = audioCtx.createGain();
-    
-    gainNode.gain.value = currentVolume; 
-    
-    source.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+    const audio = new Audio(proxyUrl);
+    const validVolume = Math.min(1.0, Math.max(0.0, parseFloat(currentVolume) || 1.0));
+    audio.volume = validVolume;
 
     btn.innerText = "🔊 再生中...";
 
     audio.onended = () => {
       btn.innerText = originalText;
       btn.disabled = false;
-      URL.revokeObjectURL(audioUrl);
-      audioCtx.close();
     };
 
     audio.onerror = () => {
-      alert("音声の再生に失敗しました。");
-      btn.innerText = originalText;
-      btn.disabled = false;
+      console.warn("PHP経由での音声取得失敗のため、標準音声へフォールバック");
+      playFallbackSpeech(speechText, btn, originalText);
     };
 
     await audio.play();
 
   } catch (error) {
-    console.error("VOICEVOX再生エラー:", error);
-    alert("音声の生成に失敗しました。通信状況をご確認ください。");
+    console.warn("再生失敗:", error);
+    playFallbackSpeech(speechText, btn, originalText);
+  }
+}
+
+// バックアップ用（標準ブラウザスピーチ）
+function playFallbackSpeech(text, btn, originalText) {
+  btn.innerText = "🔊 再生中(標準)...";
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ja-JP';
+  utterance.volume = Math.min(1.0, Math.max(0.0, parseFloat(currentVolume) || 1.0));
+
+  utterance.onend = () => {
     btn.innerText = originalText;
     btn.disabled = false;
-  }
+  };
+  utterance.onerror = () => {
+    btn.innerText = originalText;
+    btn.disabled = false;
+  };
+
+  window.speechSynthesis.speak(utterance);
 }
