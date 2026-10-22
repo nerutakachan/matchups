@@ -321,11 +321,36 @@ function renderMobileCard(matchNum, courts, waiting) {
 			<span>第 ${matchNum} 試合</span>
 			<button type="button" class="speak-btn" onclick="speakMatch(this)">音声</button>
 			<label class="done-check">
-				<input type="checkbox" onchange="this.closest('.match-card').classList.toggle('is-done')">終わったよん</label>
+				<input type="checkbox" onchange="handleDoneChange(this)">終わったよん</label>
 		</div>
 		${courtsHtml}
 		<div class="waiting-section">待機: ${waiting.length > 0 ? waiting.join(', ') : '全員出場中'}</div>`;
 	resultArea.appendChild(card);
+}
+// 「終わったよん」チェック時の処理（自然な間を入れてからスライド移動）
+function handleDoneChange(checkbox) {
+  const card = checkbox.closest('.match-card');
+  const isChecked = checkbox.checked;
+
+  // 1. チェック状態のスタイル（グレーアウト等）を即座に適用
+  card.classList.toggle('is-done', isChecked);
+
+  // 2. チェックを入れた場合のみスクロール処理
+  if (isChecked) {
+    const nextCard = card.nextElementSibling;
+    if (nextCard && nextCard.classList.contains('match-card')) {
+      
+      // 💡 350ミリ秒の「タメ」を入れてからスクロールを開始
+      setTimeout(() => {
+        nextCard.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest'
+        });
+      }, 350);
+
+    }
+  }
 }
 // --- ソロ参加者選択モーダル関連 ---
 document.getElementById('openSoloModal').addEventListener('click', () => {
