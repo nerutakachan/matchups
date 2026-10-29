@@ -4,6 +4,7 @@ let consecutiveCounts = {};
 let matchHistory = new Map(); // 個人同士の対戦履歴（1人被りなどの判定用）
 let exactMatchHistory = new Map(); // ★追加：全く同じ対戦カードの履歴
 let totalCounts = {}; // ★追加：総出場回数
+let voiceCache = {}; // ★追加：音声事前ロード用キャッシュ
 
 /**
  * 補助関数：チームの完全一致を判定するためのキーを作成
@@ -234,9 +235,9 @@ document.getElementById('generateBtn').addEventListener('click', () => {
   matchHistory = new Map();
   exactMatchHistory = new Map(); // リセット追加
 	totalCounts = {};
-  
-  const activePlayers = Array.from({ length: playerCount }, (_, i) => i + 1);
-  runGeneration(1, matchCount, activePlayers, soloPlayers, new Map(), []);
+	const activePlayers = Array.from({ length: playerCount }, (_, i) => i + 1);
+	runGeneration(1, matchCount, activePlayers, soloPlayers, new Map(), []);
+	preloadVoices();
 });
 
 /**
@@ -274,8 +275,9 @@ document.getElementById('recalcBtn').addEventListener('click', () => {
 
     // 残り試合の再生成
     const nextMatchNum = lastDoneIndex + 2;
-    runGeneration(nextMatchNum, matchCount, newActivePlayers, soloPlayers, new Map(snap.pairHistory), newLastWaiting);
-  } else {
+		runGeneration(nextMatchNum, matchCount, newActivePlayers, soloPlayers, new Map(snap.pairHistory), newLastWaiting);
+		preloadVoices();
+	} else {
     // 【完了試合が1つもない場合】第1試合から退席者を除外して再計算
     const playerCount = parseInt(document.getElementById('playerCount').value);
     if (isNaN(playerCount) || playerCount < 2) return alert('人数を正しく入力してください');
@@ -290,9 +292,9 @@ document.getElementById('recalcBtn').addEventListener('click', () => {
     totalCounts = {};
     matchHistory = new Map();
     exactMatchHistory = new Map();
-
-    runGeneration(1, matchCount, newActivePlayers, soloPlayers, new Map(), []);
-  }
+		runGeneration(1, matchCount, newActivePlayers, soloPlayers, new Map(), []);
+		preloadVoices();
+	}
 });
 
 /**
@@ -474,26 +476,55 @@ function updateCourtLimitOptions() {
     select.value = "0";
   }
 }
+// 全試合カードの音声を事前にバックグラウンド読み込み（プリロード）する関数
+function preloadVoices() {
+	voiceCache = {};
+	const cards = document.querySelectorAll('.match-card');
+	cards.forEach((card, index) => {
+		const rows = card.querySelectorAll('.court-row');
+		let speechText = "";
+		rows.forEach(row => {
+			const courtNameElement = row.querySelector('.court-name');
+			const courtName = courtNameElement ? courtNameElement.innerText.trim() : "";
+			const teams = row.querySelectorAll('.team');
+			if (teams.length >= 2) {
+				const t1 = teams.innerText.replace(/-/g, '、');
+				const t2 = teams[1].innerText.replace(/-/g, '、');
+				speechText += `${courtName}、${t1}、対するは、${t2}。`;
+			}
+		});
+		if (speechText !== "") {
+			const audio = new Audio(`voice.php?text=${encodeURIComponent(speechText)}&speaker=3`);
+			audio.preload = "auto";
+			audio.load();
+			voiceCache[index] = audio;
+		}
+	});
+}
+
+// 音声再生ボタン押下時の処理（事前読み込み済み音声を即座に再生）
 function speakMatch(btn) {
-  const card = btn.closest('.match-card');
-  const rows = card.querySelectorAll('.court-row');
-  let speechText = "";
+	const card = btn.closest('.match-card');
+	const cards = Array.from(document.querySelectorAll('.match-card'));
+	const cardIndex = cards.indexOf(card);
 
-  rows.forEach(row => {
-    const courtName = row.querySelector('.court-name').innerText; // "1コート"
-    const teams = row.querySelectorAll('.team');
-    
-    if (teams.length >= 2) {
-      const t1 = teams.innerText.replace(/-/g, '、');
-      const t2 = teams[2].innerText.replace(/-/g, '、');
-      speechText += `${courtName}、${t1}、対するは、${t2}。`;
-    }
-  });
-
-  // ★ 既存の音声再生キューを一旦キャンセルの上、再実行
-  window.speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(speechText);
-  utterance.lang = 'ja-JP';
-  window.speechSynthesis.speak(utterance);
+	if (voiceCache[cardIndex]) {
+		voiceCache[cardIndex].currentTime = 0;
+		voiceCache[cardIndex].play().catch(e => console.log('音声再生エラー:', e));
+	} else {
+		const rows = card.querySelectorAll('.court-row');
+		let speechText = "";
+		rows.forEach(row => {
+			const courtNameElement = row.querySelector('.court-name');
+			const courtName = courtNameElement ? courtNameElement.innerText.trim() : "";
+			const teams = row.querySelectorAll('.team');
+			if (teams.length >= 2) {
+				const t1 = teams.innerText.replace(/-/g, '、');
+				const t2 = teams[1].innerText.replace(/-/g, '、');
+				speechText += `${courtName}、${t1}、対するは、${t2}。`;
+			}
+		});
+		const audio = new Audio(`voice.php?text=${encodeURIComponent(speechText)}&speaker=3`);
+		audio.play().catch(e => console.log('音声再生エラー:', e));
+	}
 }
