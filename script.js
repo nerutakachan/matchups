@@ -291,9 +291,9 @@ document.getElementById('generateBtn').addEventListener('click', () => {
 	runGeneration(1, matchCount, activePlayers, soloPlayers, new Map(), []);
 	preloadVoices();
 
-	// 作成ボタンを隠し、左下の🔄（作り直す）ボタンを表示
+	// 作成ボタンをスッと沈ませて隠し、左下の🔄（作り直す）ボタンを表示
 	const genBtn = document.getElementById('generateBtn');
-	if (genBtn) genBtn.classList.add('is-hidden');
+	hideBtnWithAnimation(genBtn);
 	const resetBtn = document.getElementById('resetBtn');
 	if (resetBtn) resetBtn.classList.add('is-active');
 });
@@ -353,9 +353,9 @@ document.getElementById('recalcBtn').addEventListener('click', () => {
 		runGeneration(1, matchCount, newActivePlayers, soloPlayers, new Map(), []);
 		preloadVoices();
 	}
-	// 再計算実行後、再計算ボタンを非表示にする
+	// 再計算実行後、再計算ボタンをスッと沈ませて非表示にする
 	const recalcBtn = document.getElementById('recalcBtn');
-	if (recalcBtn) recalcBtn.classList.add('is-hidden');
+	hideBtnWithAnimation(recalcBtn);
 });
 
 /**
@@ -478,15 +478,14 @@ document.getElementById('openReduceModal').addEventListener('click', () => {
 
 document.getElementById('closeReduceModal').addEventListener('click', () => {
 	document.getElementById('reduceModal').style.display = 'none';
-
 	// 既存の関数で退席者の選択数をチェック
 	const removeIds = parseReducePlayerNumbers();
 	const recalcBtn = document.getElementById('recalcBtn');
 	if (recalcBtn) {
 		if (removeIds.length > 0) {
-			recalcBtn.classList.remove('is-hidden'); // 1人以上退席者がいれば再計算ボタンを出現
+			showBtnWithAnimation(recalcBtn); // ふわっと出現させる
 		} else {
-			recalcBtn.classList.add('is-hidden'); // 0人なら引っ込める
+			hideBtnWithAnimation(recalcBtn); // スッと沈ませて消す
 		}
 	}
 });

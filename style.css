@@ -330,7 +330,7 @@ input{
 @keyframes slideUpFade {
 	from {
 		opacity: 0;
-		transform: translateY(2em);
+		transform: translateY(1.5em);
 	}
 	to {
 		opacity: 1;
@@ -345,23 +345,25 @@ input{
 	}
 	to {
 		opacity: 0;
-		transform: translateY(2em);
+		transform: translateY(1.5em);
 	}
 }
-/* 表示時：display:noneが外れた瞬間にアニメーションが確実に再生される */
-#generateBtn,
-#recalcBtn {
-	animation: slideUpFade 1s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+/* 通常表示時（出現アニメーション） */
+#generateBtn:not(.is-leaving),
+#recalcBtn:not(.is-leaving) {
+	animation: slideUpFade 0.35s cubic-bezier(0.4, 1, 0.3, 1) forwards;
 }
-/* 非表示状態：display:noneにより幅を一切取らず、他方のボタンが100%幅を維持 */
+
+/* 消える時（退場アニメーション：:not(.is-leaving) が外れるため競合しない） */
+#generateBtn.is-leaving,
+#recalcBtn.is-leaving {
+	animation: slideDownFade 1s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* 完全に非表示（幅を一切取らない） */
 #generateBtn.is-hidden,
 #recalcBtn.is-hidden {
 	display: none;
-}
-/* 消える時（滑らかに消えてから非表示にする） */
-#generateBtn.is-leaving,
-#recalcBtn.is-leaving {
-	animation: slideDownFade 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
 /* 完全に非表示（幅を一切取らない） */
