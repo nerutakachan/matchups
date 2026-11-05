@@ -5,7 +5,27 @@ let matchHistory = new Map(); // 個人同士の対戦履歴（1人被りなど�
 let exactMatchHistory = new Map(); // ★追加：全く同じ対戦カードの履歴
 let totalCounts = {}; // ★追加：総出場回数
 let voiceCache = {}; // ★追加：音声事前ロード用キャッシュ
+// 起動時の初期ボタン状態（作成・再計算ボタンは非表示）
+const initialGenBtn = document.getElementById('generateBtn');
+const initialRecalcBtn = document.getElementById('recalcBtn');
+if (initialGenBtn) initialGenBtn.classList.add('is-hidden');
+if (initialRecalcBtn) initialRecalcBtn.classList.add('is-hidden');
 
+// 人数入力欄の監視：有効な人数（4人以上）が入ったら作成ボタンを表示
+const playerCountInput = document.getElementById('playerCount');
+if (playerCountInput) {
+	playerCountInput.addEventListener('input', () => {
+		const count = parseInt(playerCountInput.value, 10);
+		const genBtn = document.getElementById('generateBtn');
+		if (genBtn) {
+			if (!isNaN(count) && count >= 4) {
+				genBtn.classList.remove('is-hidden');
+			} else {
+				genBtn.classList.add('is-hidden');
+			}
+		}
+	});
+}
 /**
  * 補助関数：チームの完全一致を判定するためのキーを作成
  * 例: [2,1] と [4,3] の対戦を "1,2 VS 3,4" という文字列にする
@@ -238,6 +258,12 @@ document.getElementById('generateBtn').addEventListener('click', () => {
 	const activePlayers = Array.from({ length: playerCount }, (_, i) => i + 1);
 	runGeneration(1, matchCount, activePlayers, soloPlayers, new Map(), []);
 	preloadVoices();
+
+	// 作成ボタンを隠し、左下の🔄（作り直す）ボタンを表示
+	const genBtn = document.getElementById('generateBtn');
+	if (genBtn) genBtn.classList.add('is-hidden');
+	const resetBtn = document.getElementById('resetBtn');
+	if (resetBtn) resetBtn.classList.add('is-active');
 });
 
 /**
@@ -295,6 +321,9 @@ document.getElementById('recalcBtn').addEventListener('click', () => {
 		runGeneration(1, matchCount, newActivePlayers, soloPlayers, new Map(), []);
 		preloadVoices();
 	}
+	// 再計算実行後、再計算ボタンを非表示にする
+	const recalcBtn = document.getElementById('recalcBtn');
+	if (recalcBtn) recalcBtn.classList.add('is-hidden');
 });
 
 /**
@@ -416,8 +445,41 @@ document.getElementById('openReduceModal').addEventListener('click', () => {
 });
 
 document.getElementById('closeReduceModal').addEventListener('click', () => {
-  document.getElementById('reduceModal').style.display = 'none';
+	document.getElementById('reduceModal').style.display = 'none';
+
+	// 既存の関数で退席者の選択数をチェック
+	const removeIds = parseReducePlayerNumbers();
+	const recalcBtn = document.getElementById('recalcBtn');
+	if (recalcBtn) {
+		if (removeIds.length > 0) {
+			recalcBtn.classList.remove('is-hidden'); // 1人以上退席者がいれば再計算ボタンを出現
+		} else {
+			recalcBtn.classList.add('is-hidden'); // 0人なら引っ込める
+		}
+	}
 });
+
+// 左下の「🔄（作り直す）」ボタン押下時の処理
+const resetBtnEl = document.getElementById('resetBtn');
+if (resetBtnEl) {
+	resetBtnEl.addEventListener('click', () => {
+		// 結果表示エリアと各種履歴のリセット
+		document.getElementById('resultArea').innerHTML = '';
+		matchSnapshots = [];
+		consecutiveCounts = {};
+		matchHistory = new Map();
+		exactMatchHistory = new Map();
+		totalCounts = {};
+		voiceCache = {};
+
+		// 🔄ボタンを非表示にし、作成ボタンを再び表示
+		resetBtnEl.classList.remove('is-active');
+		const genBtn = document.getElementById('generateBtn');
+		if (genBtn) genBtn.classList.remove('is-hidden');
+		const recalcBtn = document.getElementById('recalcBtn');
+		if (recalcBtn) recalcBtn.classList.add('is-hidden');
+	});
+}
 
 /**
  * 補助関数：モーダルのチェックボックスから退席者プレイヤー番号を取得
