@@ -11,18 +11,50 @@ const initialRecalcBtn = document.getElementById('recalcBtn');
 if (initialGenBtn) initialGenBtn.classList.add('is-hidden');
 if (initialRecalcBtn) initialRecalcBtn.classList.add('is-hidden');
 
-// 人数入力欄の監視：有効な人数（4人以上）が入ったら作成ボタンを表示
+// スッと沈みながら滑らかに消すための補助関数
+function hideBtnWithAnimation(btn) {
+	if (!btn || btn.classList.contains('is-hidden')) return;
+	btn.classList.add('is-leaving');
+	setTimeout(() => {
+		btn.classList.remove('is-leaving');
+		btn.classList.add('is-hidden');
+	}, 250); // style.css の slideDownFade の時間（0.25s）と同期
+}
+
+// ふわっと表示するための補助関数
+function showBtnWithAnimation(btn) {
+	if (!btn) return;
+	btn.classList.remove('is-leaving');
+	btn.classList.remove('is-hidden');
+}
+
+// 人数入力欄の監視：退席者設定時の警告とリセット分岐
 const playerCountInput = document.getElementById('playerCount');
 if (playerCountInput) {
 	playerCountInput.addEventListener('input', () => {
 		const count = parseInt(playerCountInput.value, 10);
 		const genBtn = document.getElementById('generateBtn');
-		if (genBtn) {
-			if (!isNaN(count) && count >= 4) {
-				genBtn.classList.remove('is-hidden');
-			} else {
-				genBtn.classList.add('is-hidden');
+		const recalcBtn = document.getElementById('recalcBtn');
+
+		if (!isNaN(count) && count >= 4) {
+			// 既存の関数を使って退席者が選択されているか確認
+			const removeIds = typeof parseReducePlayerNumbers === 'function' ? parseReducePlayerNumbers() : [];
+
+			if (removeIds.length > 0) {
+				const isReset = confirm("退席者が設定されています。退席者をリセットしますか？\n\n【OK】：退席者をリセットして入力を続ける\n【キャンセル】：退席者を維持して組み合わせを作成する");
+				if (isReset) {
+					// 退席者チェックボックスをすべてリセット（解除）
+					const checkboxes = document.querySelectorAll('#reduceOptions input[type="checkbox"]');
+					checkboxes.forEach(cb => cb.checked = false);
+				}
 			}
+
+			// どちらの場合も「再計算」ボタンは滑らかに隠し、「組み合わせを作成する」ボタンを表示
+			hideBtnWithAnimation(recalcBtn);
+			showBtnWithAnimation(genBtn);
+		} else {
+			// 4人未満や空欄になった時は、作成ボタンを滑らかに隠す
+			hideBtnWithAnimation(genBtn);
 		}
 	});
 }

@@ -15,7 +15,7 @@ body {
 	color: #333;
 	background: url(image/smash.png);
 	background-repeat: no-repeat;
-	background-position: bottom 64px center;
+	background-position: bottom 0px center;
 	background-size: 85vw;
 	background-attachment: fixed;
 	overscroll-behavior-y: none; 
@@ -326,25 +326,47 @@ input{
 /* ==========================================================================
    ボタンのスマートな出現アニメーション & 作り直す（🔄）ボタンスタイル
    ========================================================================== */
-.btm_box {
-	min-height: 48px; /* ボタン非表示時もレイアウト崩れを防ぐ */
+/* 下からスッと浮き上がりながらフェードインするキーフレーム */
+@keyframes slideUpFade {
+	from {
+		opacity: 0;
+		transform: translateY(2em);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
-
-/* ボタン共通：フワッと浮き上がって出現するトランジション */
+/* 退場アニメーション：下へスッと沈んでフェードアウト */
+@keyframes slideDownFade {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(2em);
+	}
+}
+/* 表示時：display:noneが外れた瞬間にアニメーションが確実に再生される */
 #generateBtn,
 #recalcBtn {
-	transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-	            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	opacity: 1;
-	transform: translateY(0);
+	animation: slideUpFade 1s cubic-bezier(0.2, 1, 0.3, 1) forwards;
 }
-
-/* 非表示状態（スマートに引っ込む） */
+/* 非表示状態：display:noneにより幅を一切取らず、他方のボタンが100%幅を維持 */
 #generateBtn.is-hidden,
 #recalcBtn.is-hidden {
-	opacity: 0;
-	transform: translateY(12px);
-	pointer-events: none;
+	display: none;
+}
+/* 消える時（滑らかに消えてから非表示にする） */
+#generateBtn.is-leaving,
+#recalcBtn.is-leaving {
+	animation: slideDownFade 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* 完全に非表示（幅を一切取らない） */
+#generateBtn.is-hidden,
+#recalcBtn.is-hidden {
 	display: none;
 }
 
@@ -355,7 +377,7 @@ input{
 	justify-content: center;
 	width: 38px;
 	height: 38px;
-	margin: 12px 0 6px 4px;
+	margin: 10px 0 6px 4px;
 	padding: 0;
 	font-size: 1.1rem;
 	background: #ffffff;
@@ -363,7 +385,7 @@ input{
 	border-radius: 50%;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: all 0.25s ease;
 	opacity: 0;
 	transform: scale(0.85);
 	pointer-events: none;
