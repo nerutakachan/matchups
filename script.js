@@ -18,7 +18,7 @@ function hideBtnWithAnimation(btn) {
 	setTimeout(() => {
 		btn.classList.remove('is-leaving');
 		btn.classList.add('is-hidden');
-	}, 250); // style.css の slideDownFade の時間（0.25s）と同期
+	}, 250);
 }
 
 // ふわっと表示するための補助関数
@@ -28,34 +28,37 @@ function showBtnWithAnimation(btn) {
 	btn.classList.remove('is-hidden');
 }
 
-// 人数入力欄の監視：退席者設定時の警告とリセット分岐
+// 人数のチェックと作成ボタンの表示切り替え関数
+function handlePlayerCountChange() {
+	const countInput = document.getElementById('playerCount');
+	const genBtn = document.getElementById('generateBtn');
+	const recalcBtn = document.getElementById('recalcBtn');
+	if (!countInput || !genBtn) return;
+
+	const count = parseInt(countInput.value, 10);
+	if (!isNaN(count) && count >= 4) {
+		// すでに退席者が設定されているか確認
+		const removeIds = typeof parseReducePlayerNumbers === 'function' ? parseReducePlayerNumbers() : [];
+		if (removeIds.length > 0) {
+			const isReset = confirm("退席者が設定されています。退席者をリセットしますか？\n\n【OK】：退席者をリセットして入力を続ける\n【キャンセル】：退席者を維持して組み合わせを作成する");
+			if (isReset) {
+				const checkboxes = document.querySelectorAll('#reduceOptions input[type="checkbox"]');
+				checkboxes.forEach(cb => cb.checked = false);
+			}
+		}
+
+		hideBtnWithAnimation(recalcBtn);
+		showBtnWithAnimation(genBtn);
+	} else {
+		hideBtnWithAnimation(genBtn);
+	}
+}
+
+// 人数入力欄の監視：スマホの確定漏れを防ぐため input / change / keyup すべてで監視
 const playerCountInput = document.getElementById('playerCount');
 if (playerCountInput) {
-	playerCountInput.addEventListener('input', () => {
-		const count = parseInt(playerCountInput.value, 10);
-		const genBtn = document.getElementById('generateBtn');
-		const recalcBtn = document.getElementById('recalcBtn');
-
-		if (!isNaN(count) && count >= 4) {
-			// 既存の関数を使って退席者が選択されているか確認
-			const removeIds = typeof parseReducePlayerNumbers === 'function' ? parseReducePlayerNumbers() : [];
-
-			if (removeIds.length > 0) {
-				const isReset = confirm("退席者が設定されています。退席者をリセットしますか？\n\n【OK】：退席者をリセットして入力を続ける\n【キャンセル】：退席者を維持して組み合わせを作成する");
-				if (isReset) {
-					// 退席者チェックボックスをすべてリセット（解除）
-					const checkboxes = document.querySelectorAll('#reduceOptions input[type="checkbox"]');
-					checkboxes.forEach(cb => cb.checked = false);
-				}
-			}
-
-			// どちらの場合も「再計算」ボタンは滑らかに隠し、「組み合わせを作成する」ボタンを表示
-			hideBtnWithAnimation(recalcBtn);
-			showBtnWithAnimation(genBtn);
-		} else {
-			// 4人未満や空欄になった時は、作成ボタンを滑らかに隠す
-			hideBtnWithAnimation(genBtn);
-		}
+	['input', 'change', 'keyup'].forEach(eventName => {
+		playerCountInput.addEventListener(eventName, handlePlayerCountChange);
 	});
 }
 /**
@@ -382,7 +385,7 @@ function renderMobileCard(matchNum, courts, waiting) {
   card.innerHTML = `
 		<div class="match-header">
 			<span>第 ${matchNum} 試合</span>
-			<button type="button" class="speak-btn" onclick="speakMatch(this)">音声</button>
+			<!--<button type="button" class="speak-btn" onclick="speakMatch(this)">音声</button>-->
 			<label class="done-check">
 				<input type="checkbox" onchange="handleDoneChange(this)">終わったよん</label>
 		</div>
@@ -494,21 +497,65 @@ document.getElementById('closeReduceModal').addEventListener('click', () => {
 const resetBtnEl = document.getElementById('resetBtn');
 if (resetBtnEl) {
 	resetBtnEl.addEventListener('click', () => {
-		// 結果表示エリアと各種履歴のリセット
-		document.getElementById('resultArea').innerHTML = '';
-		matchSnapshots = [];
-		consecutiveCounts = {};
-		matchHistory = new Map();
-		exactMatchHistory = new Map();
-		totalCounts = {};
-		voiceCache = {};
+		const cards = Array.from(document.querySelectorAll('.match-card'));
+		const lastDoneIndex = cards.findLastIndex(card => card.classList.contains('is-done'));
 
-		// 🔄ボタンを非表示にし、作成ボタンを再び表示
-		resetBtnEl.classList.remove('is-active');
-		const genBtn = document.getElementById('generateBtn');
-		if (genBtn) genBtn.classList.remove('is-hidden');
-		const recalcBtn = document.getElementById('recalcBtn');
-		if (recalcBtn) recalcBtn.classList.add('is-hidden');
+		const confirmMsg = lastDoneIndex >= 0
+			? `第${lastDoneIndex + 1}試合までは終了しています。\n未完了の試合（第${lastDoneIndex + 2}試合以降）を作り直しますか？`
+			: "現在の組み合わせを破棄して、最初から作り直しますか？";
+
+		if (!confirm(confirmMsg)) {
+			return;
+		}
+
+		const matchCount = parseInt(document.getElementById('matchCount').value, 10);
+		const soloPlayers = parsePlayerNumbers();
+		const removeIds = parseReducePlayerNumbers();
+
+		if (lastDoneIndex >= 0) {
+			// 【完了試合がある場合】終了した最終試合の時点から再生成
+			const snap = matchSnapshots[lastDoneIndex];
+			if (!snap) return;
+
+			const newActivePlayers = snap.activePlayers.filter(p => !removeIds.includes(p));
+			const newLastWaiting = snap.lastWaiting.filter(p => !removeIds.includes(p));
+
+			// 終了時点の状態・履歴を復元
+			totalCounts = snap.totalCounts ? { ...snap.totalCounts } : {};
+			consecutiveCounts = snap.consecutiveCounts ? { ...snap.consecutiveCounts } : {};
+			matchHistory = new Map(snap.matchHistory);
+			exactMatchHistory = new Map(snap.exactMatchHistory);
+
+			// 未完了カードのみを削除し、スナップショットを切り詰め
+			for (let i = cards.length - 1; i > lastDoneIndex; i--) {
+				cards[i].remove();
+			}
+			matchSnapshots = matchSnapshots.slice(0, lastDoneIndex + 1);
+
+			// 次の試合から再生成
+			const nextMatchNum = lastDoneIndex + 2;
+			runGeneration(nextMatchNum, matchCount, newActivePlayers, soloPlayers, new Map(snap.pairHistory), newLastWaiting);
+			preloadVoices();
+		} else {
+			// 【完了試合が1つもない場合】第1試合から全作り直し
+			const playerCount = parseInt(document.getElementById('playerCount').value, 10);
+			if (isNaN(playerCount) || playerCount < 4) {
+				alert('人数を4人以上で正しく入力してください。');
+				return;
+			}
+			const allPlayers = Array.from({ length: playerCount }, (_, i) => i + 1);
+			const newActivePlayers = allPlayers.filter(p => !removeIds.includes(p));
+
+			document.getElementById('matches').innerHTML = '';
+			matchSnapshots = [];
+			consecutiveCounts = {};
+			totalCounts = {};
+			matchHistory = new Map();
+			exactMatchHistory = new Map();
+
+			runGeneration(1, matchCount, newActivePlayers, soloPlayers, new Map(), []);
+			preloadVoices();
+		}
 	});
 }
 
