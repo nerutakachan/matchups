@@ -450,14 +450,25 @@ function parsePlayerNumbers() {
 	return Array.from(checkboxes).map(cb => parseInt(cb.value));
 }
 document.getElementById('openConfigModal').addEventListener('click', () => {
-  // モーダルを開く直前に選択肢を最新の人数状態に合わせて更新
-  updateCourtLimitOptions();
-
-  document.getElementById('configModal').style.display = 'block';
+	// モーダルを開く直前に選択肢を最新の人数状態に合わせて更新
+	updateCourtLimitOptions();
+	document.getElementById('configModal').style.display = 'block';
 });
 
 document.getElementById('closeConfigModal').addEventListener('click', () => {
 	document.getElementById('configModal').style.display = 'none';
+
+	// すでに組み合わせが作成されている場合のみ確認
+	const hasCards = document.querySelectorAll('.match-card').length > 0;
+	if (hasCards) {
+		const isConfirm = confirm("設定が変更されました。新しい設定で試合を再計算しますか？");
+		if (isConfirm) {
+			const recalcBtn = document.getElementById('recalcBtn');
+			if (recalcBtn) {
+				showBtnWithAnimation(recalcBtn); // ふわっと再計算ボタンを表示
+			}
+		}
+	}
 });
 // --- 退席者選択モーダル関連（ソロ用と独立処理） ---
 document.getElementById('openReduceModal').addEventListener('click', () => {
