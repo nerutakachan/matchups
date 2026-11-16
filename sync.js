@@ -124,3 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// アプリを閉じた（タスクキル・裏に回した）瞬間にサーバーデータを消去
+window.addEventListener('pagehide', () => {
+    if (isOwner) {
+        navigator.sendBeacon(`save.php?room=${currentRoomId}&action=clear`);
+    }
+});

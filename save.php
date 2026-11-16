@@ -2,15 +2,29 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
-// URLから部屋IDを取得
 $room = isset($_GET['room']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', $_GET['room']) : 'default';
-if (empty($room)) {
-    $room = 'default';
-}
+if (empty($room)) { $room = 'default'; }
 
 $filename = __DIR__ . '/state_' . $room . '.json';
+$expire_seconds = 6 * 3600; // 6時間で自動消去
 
-// 【保存】操作時（POST）
+// 古い保存ファイルの自動クリーンアップ
+if (file_exists($filename)) {
+    if ((time() - filemtime($filename)) > $expire_seconds) {
+        @unlink($filename);
+    }
+}
+
+// 消去リクエスト（DELETE または action=clear）
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE' || isset($_GET['action']) && $_GET['action'] === 'clear') {
+    if (file_exists($filename)) {
+        @unlink($filename);
+    }
+    echo json_encode(['status' => 'cleared']);
+    exit;
+}
+
+// 保存処理（POST）
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $json = file_get_contents('php://input');
     if ($json) {
@@ -23,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// 【取得】閲覧側（GET）
+// 取得処理（GET）
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (file_exists($filename)) {
         echo file_get_contents($filename);
